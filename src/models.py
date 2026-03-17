@@ -1,0 +1,79 @@
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, String, Integer, Float, DateTime, Text, ForeignKey, create_engine
+from sqlalchemy.orm import relationship
+
+from .database import Base
+
+def generate_uuid():
+    return str(uuid.uuid4())
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    # Anonymous by default, no PII. We can just use the UUID.
+    hashed_password = Column(String, nullable=False) # For token auth
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    mood_logs = relationship("MoodLog", back_populates="user")
+    sleep_data = relationship("SleepActivityData", back_populates="user")
+    alerts = relationship("RiskAlert", back_populates="user")
+
+
+class MoodLog(Base):
+    __tablename__ = "mood_logs"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    
+    # Simple 1-10 scale for gamified tracking
+    mood_score = Column(Integer, nullable=False) 
+    
+    # Text journal for NLP sentiment analysis
+    journal_entry = Column(Text, nullable=True)
+    
+    # NLP calculated sentiment score (-1 to 1)
+    sentiment_score = Column(Float, nullable=True) 
+    
+    logged_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="mood_logs")
+
+
+class SleepActivityData(Base):
+    __tablename__ = "sleep_activity_data"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    
+    # Passive indicators
+    sleep_hours = Column(Float, nullable=False)
+    study_screen_time_hours = Column(Float, nullable=False)
+    
+    logged_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="sleep_data")
+
+
+class RiskAlert(Base):
+    """
+    Stores flagged early-detection risks.
+    """
+    __tablename__ = "risk_alerts"
+
+    id = Column(String, primary_key=True, default=generate_uuid, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    
+    # 'Low', 'Medium', 'High'
+    risk_level = Column(String, nullable=False)
+    
+    # Reason for the alert (e.g., 'Consecutive poor sleep and negative sentiment')
+    reason = Column(String, nullable=False)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Whether the user acknowledged or took action
+    is_resolved = Column(Integer, default=0)
+
+    user = relationship("User", back_populates="alerts")
