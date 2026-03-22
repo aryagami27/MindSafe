@@ -31,6 +31,8 @@ export const api = {
   submitMoodLog: (data) => request('/mood-logs', { method: 'POST', body: JSON.stringify(data) }),
   submitDataMarkers: (data) => request('/data-markers', { method: 'POST', body: JSON.stringify(data) }),
   analyzeStress: () => request('/analyze/stress', { method: 'POST' }),
+  getQuestions: () => request('/assessment/questions'),
+  submitAssessment: (answers) => request('/assessment/submit', { method: 'POST', body: JSON.stringify({ answers }) }),
 };
 
 export { getToken, setToken, clearToken };

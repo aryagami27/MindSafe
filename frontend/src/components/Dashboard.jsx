@@ -2,11 +2,13 @@ import { useState } from 'react';
 import MoodLogger from './MoodLogger';
 import DataIngestor from './DataIngestor';
 import RiskAlert from './RiskAlert';
+import Assessment from './Assessment';
 import { clearToken } from '../api';
 
 const TABS = [
   { id: 'mood', label: '📋 Check-in' },
   { id: 'data', label: '🌙 Data' },
+  { id: 'assess', label: '🧠 Assess' },
   { id: 'alert', label: '🔍 Analysis' },
 ];
 
@@ -71,6 +73,7 @@ export default function Dashboard({ user, onLogout }) {
       <div className="animate-in animate-in-delay-3">
         {activeTab === 'mood' && <MoodLogger />}
         {activeTab === 'data' && <DataIngestor />}
+        {activeTab === 'assess' && <Assessment />}
         {activeTab === 'alert' && <RiskAlert />}
       </div>
     </div>

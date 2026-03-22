@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 class MoodLogCreate(BaseModel):
     mood_score: int = Field(..., ge=1, le=10, description="Mood score from 1 to 10")
@@ -14,3 +14,11 @@ class RiskAlertResponse(BaseModel):
     risk_level: str
     reason: str
     is_resolved: int
+
+class QuestionnaireSubmit(BaseModel):
+    answers: List[int] = Field(
+        ...,
+        min_length=8, max_length=8,
+        description="List of 8 answer scores (0=Never, 1=Sometimes, 2=Often, 3=Always)"
+    )
+

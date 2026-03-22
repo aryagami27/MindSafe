@@ -7,6 +7,7 @@ from textblob import TextBlob
 from src import models, database, auth, schemas
 from src.services.exam_logic import is_exam_period
 from src.services.routing import analyze_stress_level, generate_risk_alert
+from src.services.assessment import QUESTIONS, run_comprehensive_analysis
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -108,3 +109,33 @@ def test_analyze_stress(
         "reason": alert.reason if alert else "Normal ranges detected.",
         "exam_nudge_active": exam_nudge_active
     }
+
+
+# ─── Assessment endpoints ───
+
+@router.get("/assessment/questions")
+def get_questions():
+    """Returns the mental health questionnaire question set."""
+    return {"questions": QUESTIONS}
+
+
+@router.post("/assessment/submit")
+def submit_assessment(
+    data: schemas.QuestionnaireSubmit,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """
+    Submit questionnaire answers and receive a comprehensive multi-dimensional
+    mental health analysis combining answers with passive data.
+    """
+    # Validate answer range
+    for i, ans in enumerate(data.answers):
+        if ans < 0 or ans > 3:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Answer {i+1} must be between 0 and 3"
+            )
+    
+    report = run_comprehensive_analysis(current_user.id, data.answers, db)
+    return report
